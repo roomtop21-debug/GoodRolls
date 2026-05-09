@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GoodRolls</title>
+    <title>GoodRolls PvP</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -18,483 +18,405 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* Views */
         .view-container { flex: 1; position: relative; overflow: hidden; }
-        .view {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.2s;
-        }
+        .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .view.active { opacity: 1; pointer-events: all; }
 
         /* --- ROLLS VIEW --- */
-        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; z-index: 10; }
-        .icon-btn { width: 40px; height: 40px; background: var(--card-bg); border-radius: 12px; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-        .icon-btn svg { width: 20px; height: 20px; fill: var(--text-muted); }
+        .top-nav { display: flex; justify-content: center; align-items: center; padding: 15px 20px; z-index: 10; position: relative; }
         .pool-display { display: flex; flex-direction: column; align-items: center; }
-        .pool-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .pool-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
         .pool-value { font-size: 15px; font-weight: 800; background: var(--card-bg); padding: 6px 16px; border-radius: 20px; margin-top: 4px; border: 1px solid rgba(255,255,255,0.05); }
 
         .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 10px; overflow: hidden; }
-        .wheel-container { position: relative; width: 75vw; max-width: 300px; aspect-ratio: 1; margin-bottom: 20px; flex-shrink: 0; }
+        .wheel-container { position: relative; width: 280px; height: 280px; margin-bottom: 20px; flex-shrink: 0; }
         .wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid var(--wheel-border); position: relative; overflow: hidden; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1); background: #2b2b36; }
-        .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 35%; height: 35%; background: var(--wheel-border); border-radius: 50%; z-index: 20; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .center-text { font-size: 16px; font-weight: 800; text-transform: uppercase; }
-        .pointer { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 24px; height: 20px; background: white; clip-path: polygon(50% 100%, 0 0, 100% 0); z-index: 30; }
+        .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: var(--wheel-border); border-radius: 50%; z-index: 20; display: flex; align-items: center; justify-content: center; }
+        .center-text { font-size: 14px; font-weight: 800; text-transform: uppercase; }
+        .pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: white; clip-path: polygon(50% 100%, 0 0, 100% 0); z-index: 30; }
 
-        .wheel-avatar { position: absolute; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); z-index: 10; background: #1c1c1e; box-shadow: 0 2px 5px rgba(0,0,0,0.5); overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .wheel-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .wheel-avatar svg { width: 70%; height: 70%; fill: white; }
-
-        .mini-controls { width: 90%; display: flex; justify-content: space-between; margin-bottom: 15px; flex-shrink: 0; }
-        .gifts-btn { background: var(--card-bg); padding: 8px 12px; border-radius: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        .gifts-btn svg { width: 18px; height: 18px; fill: #ff453a; }
+        .mini-controls { width: 90%; display: flex; justify-content: flex-end; margin-bottom: 15px; }
         .balance-pill { background: var(--card-bg); padding: 8px 12px; border-radius: 12px; display: flex; align-items: center; gap: 8px; }
-        .ton-coin { width: 18px; height: 18px; background: var(--accent-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .ton-coin svg { width: 10px; height: 10px; fill: white; }
+        .custom-ton-icon { width: 18px; height: 18px; object-fit: contain; }
         .bal-val { font-weight: 700; font-size: 14px; }
-        .plus-btn { width: 20px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .plus-btn svg { width: 10px; height: 10px; fill: white; }
+        .plus-btn { width: 24px; height: 24px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .plus-btn svg { width: 12px; height: 12px; fill: white; }
 
-        .main-controls { width: 90%; display: flex; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
-        .btn-yellow { flex: 1.2; background: var(--accent-yellow); color: #000; border: none; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 800; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; }
-        .btn-yellow:disabled { opacity: 0.5; }
-        .bet-input-wrap { flex: 1; background: var(--accent-blue); border-radius: 14px; display: flex; align-items: center; padding: 0 16px; position: relative; }
-        .bet-input-wrap .ton-coin { width: 16px; height: 16px; position: absolute; left: 16px; }
-        .bet-input-wrap input { width: 100%; background: transparent; border: none; color: white; font-size: 16px; font-weight: 800; text-align: center; padding-left: 20px; outline: none; }
-        .bet-input-wrap span { font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.8); margin-left: 4px; }
+        .main-controls { width: 90%; display: flex; gap: 10px; margin-bottom: 10px; }
+        .btn-yellow { flex: 1; background: var(--accent-yellow); color: #000; border: none; padding: 16px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer; }
+        .bet-input-wrap { flex: 1; background: var(--card-bg); border-radius: 14px; display: flex; align-items: center; padding: 0 10px; }
+        .bet-input-wrap img { width: 16px; height: 16px; }
+        .bet-input-wrap input { width: 100%; background: transparent; border: none; color: white; font-size: 16px; font-weight: 800; text-align: center; outline: none; }
 
         .players-sheet { width: 100%; flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0 20px; }
-        .sheet-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; margin-bottom: 12px; color: var(--text-main); }
-        .sheet-header span:last-child { color: var(--text-muted); }
+        .sheet-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; margin-bottom: 12px; }
         .players-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
-        .player-card { background: var(--card-bg); border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-        .p-left { display: flex; align-items: center; gap: 12px; }
-        .p-avatar { width: 40px; height: 40px; border-radius: 50%; background: #252528; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .p-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .p-avatar svg { width: 60%; height: 60%; fill: white; }
-        .p-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-        .p-bet-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(41, 112, 255, 0.15); color: var(--accent-blue); padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 800; }
-        .p-bet-badge .ton-coin { width: 10px; height: 10px; }
-        .p-right { text-align: right; }
-        .p-perc { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
-        .p-ton { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .player-card { background: var(--card-bg); border-radius: 16px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .p-left { display: flex; align-items: center; gap: 10px; }
+        .p-avatar { width: 36px; height: 36px; border-radius: 50%; background: #252528; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .p-avatar img, .p-avatar svg { width: 100%; height: 100%; object-fit: cover; }
+        .p-name { font-size: 14px; font-weight: 700; }
+        .p-bet { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 800; color: var(--accent-blue); }
+        .p-bet img { width: 12px; height: 12px; }
 
         /* --- PROFILE VIEW --- */
-        #profileView {
-            background-image: radial-gradient(circle at center, #1a1a24 0%, #0b0b0e 100%);
-        }
-        /* Звездочки на фоне профиля */
-        .stars-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
-            background-image: radial-gradient(white 1px, transparent 1px);
-            background-size: 40px 40px; opacity: 0.05;
-        }
-        .prof-top { display: flex; justify-content: space-between; padding: 20px; z-index: 1; }
+        #view-profile { align-items: center; justify-content: center; padding: 20px; }
+        .prof-avatar { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; background: #252528; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
+        .prof-avatar img, .prof-avatar svg { width: 100%; height: 100%; object-fit: cover; }
+        .prof-name { font-size: 24px; font-weight: 800; margin-bottom: 30px; }
+        .btn-settings { background: var(--card-bg); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 800; width: 100%; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; position: relative; }
         
-        .prof-pill {
-            background: #232328; border-radius: 20px; padding: 8px 16px; display: flex; align-items: center; gap: 8px;
-            font-size: 16px; font-weight: 800; color: white; border: none; cursor: pointer;
-        }
-        .prof-pill svg { width: 18px; height: 18px; }
-        
-        .prof-circle {
-            background: #232328; width: 44px; height: 44px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; border: none; cursor: pointer;
-        }
-        .prof-circle svg { width: 22px; height: 22px; fill: white; }
-
-        .prof-center { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-bottom: 15vh; z-index: 1; }
-        .prof-avatar { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin-bottom: 20px; background: #252528; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .prof-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .prof-avatar svg { width: 50%; height: 50%; fill: white; }
-        .prof-name { font-size: 26px; font-weight: 800; color: white; }
+        /* Скрытая кнопка щита */
+        .admin-shield { position: absolute; right: 15px; width: 20px; height: 20px; fill: white; opacity: 0.03; cursor: default; }
 
         /* --- BOTTOM NAV --- */
-        .bottom-nav {
-            background: var(--nav-bg); width: 100%; height: 70px; display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; z-index: 100;
-        }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted);
-            border: none; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600; flex: 1;
-        }
-        .nav-item svg { width: 24px; height: 24px; fill: var(--text-muted); transition: 0.2s; }
+        .bottom-nav { background: var(--nav-bg); width: 100%; height: 70px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); border: none; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600; flex: 1; }
+        .nav-item svg { width: 24px; height: 24px; fill: var(--text-muted); }
         .nav-item.active { color: white; }
         .nav-item.active svg { fill: white; }
 
-        /* Modals */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: var(--card-bg); width: 85%; max-height: 80vh; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.05); }
+        /* --- MODALS & ALERTS --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: var(--card-bg); width: 90%; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; }
         .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 15px; text-align: center; }
-        .modal-content { overflow-y: auto; flex: 1; margin-bottom: 15px; font-size: 14px; color: var(--text-muted); text-align: center; line-height: 1.5; }
-        .close-btn { background: #2b2b36; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; }
+        
+        /* Red GUI Limit */
+        .red-limit-gui { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) scale(0.9); background: #ff3b30; color: white; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); text-align: center; }
+        .red-limit-gui.show { opacity: 1; transform: translateX(-50%) scale(1); }
 
-        /* History & Chat Elements */
-        .hist-item { background: #2b2b36; margin-bottom: 8px; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; color: white; font-weight: 600; }
-        .hist-win { color: var(--accent-blue); }
-        .chat-row { display: flex; gap: 8px; margin-top: 10px; }
-        .chat-row input { flex: 1; background: #2b2b36; border: none; border-radius: 10px; padding: 10px; color: white; outline: none; }
-        .chat-row button { background: var(--accent-blue); border: none; border-radius: 10px; padding: 0 15px; color: white; font-weight: 800; }
-        .chat-msg { text-align: left; padding: 8px; background: #2b2b36; border-radius: 8px; margin-bottom: 6px; color: white; }
+        /* Winner Bottom Sheet */
+        .winner-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #1c1c1e; border-radius: 24px 24px 0 0; padding: 30px 20px 40px; display: flex; flex-direction: column; align-items: center; transition: bottom 0.4s cubic-bezier(0.1, 0, 0.1, 1); z-index: 2000; }
+        .winner-sheet.show { bottom: 0; }
+        .win-title { font-size: 14px; font-weight: 800; color: var(--text-muted); margin-bottom: 15px; }
+        .win-ava { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; margin-bottom: 10px; background: #333; display: flex; justify-content: center; align-items: center; }
+        .win-ava img, .win-ava svg { width: 100%; height: 100%; object-fit: cover; }
+        .win-name { font-size: 18px; font-weight: 800; margin-bottom: 5px; }
+        .win-amount { font-size: 24px; font-weight: 800; color: #34c759; margin-bottom: 25px; }
+        .btn-white { background: white; color: black; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 800; width: 100%; cursor: pointer; }
+
+        /* Admin UI */
+        .admin-input { width: 100%; background: #2b2b36; border: none; border-radius: 10px; padding: 12px; color: white; margin-bottom: 10px; outline: none; font-weight: 600; font-size: 16px; }
+        .admin-stat { background: #151517; padding: 15px; border-radius: 10px; margin-bottom: 10px; font-size: 14px; line-height: 1.6; }
+        .admin-row { display: flex; gap: 10px; }
+        .admin-row button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
+        .btn-add { background: var(--accent-blue); color: white; }
+        .btn-rem { background: #ff3b30; color: white; }
+        .btn-close { background: #333; color: white; padding: 14px; border-radius: 12px; border: none; font-weight: 800; margin-top: 10px; cursor: pointer; }
+
     </style>
 </head>
 <body>
 
     <svg style="display:none;">
-        <symbol id="icon-history" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></symbol>
-        <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></symbol>
-        <symbol id="icon-ton" viewBox="0 0 24 24"><path d="M12 2L3 12L12 22L21 12L12 2Z"/></symbol>
         <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></symbol>
-        <symbol id="icon-gift" viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1h-4v-2h4zM9 4c.55 0 1 .45 1 1v2H6c0-.55.45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76 12 7.4v7.49l1.24-1.57L15.38 12 17 10.83 14.92 8H20v6z"/></symbol>
         <symbol id="icon-user" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></symbol>
-        <symbol id="icon-bot" viewBox="0 0 24 24"><path d="M19 8h-1V7c0-1.1-.9-2-2-2h-3V4c0-1.1-.9-2-2-2s-2 .9-2 2v1H6c-1.1 0-2 .9-2 2v1H3c-1.1 0-2 .9-2 2v2h2v4H1c-1.1 0-2 .9-2 2v2h3v1c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-1h3c1.1 0 2-.9 2-2v-2h-2v-4h2v-2c0-1.1-.9-2-2-2zM9 9h2v2H9V9zm6 0h-2v2h2V9z"/></symbol>
-        <symbol id="icon-flower" viewBox="0 0 24 24"><path fill="#f48fb1" d="M12 2C10.5 2 9 3.5 9 5.5c0 1.3.7 2.4 1.8 3-1.6-.6-3.4-.6-4.8.2-1.3.8-1.5 2.5-.5 3.8 1 1.2 2.6 1.5 4 .9-1.2 1-1.5 2.8-.8 4 .8 1.4 2.5 1.5 3.8.5.6-.4 1-1.1 1-1.9v-3.5c0-.8.4-1.6 1-2.2.6.6 1 1.4 1 2.2v3.5c0 .8.4 1.5 1 1.9 1.3 1 3 .9 3.8-.5.7-1.2.4-3-.8-4 1.4.6 3 .3 4-.9 1-1.3.8-3-.5-3.8-1.4-.8-3.2-.8-4.8-.2 1.1-.6 1.8-1.7 1.8-3C15 3.5 13.5 2 12 2z"/></symbol>
-        <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M19.4 13l1.1 1.6c.3.4.4 1 .2 1.4l-1.9 3.3c-.3.4-.8.6-1.3.5l-1.8-.6c-.5.4-1.1.8-1.7 1l-.4 1.9c-.1.5-.6.9-1.1.9h-3.8c-.5 0-1-.4-1.1-.9l-.4-1.9c-.6-.2-1.2-.6-1.7-1l-1.8.6c-.5.1-1-.1-1.3-.5l-1.9-3.3c-.2-.4-.1-1 .2-1.4L4.6 13c0-.3 0-.7 0-1s0-.7.1-1L3.6 9.4c-.3-.4-.4-1-.2-1.4l1.9-3.3c.3-.4.8-.6 1.3-.5l1.8.6c.5-.4 1.1-.8 1.7-1l.4-1.9C10.6 1.4 11.1 1 11.6 1h3.8c.5 0 1 .4 1.1.9l.4 1.9c.6.2 1.2.6 1.7 1l1.8-.6c.5-.1 1 .1 1.3.5l1.9 3.3c.2.4.1 1-.2 1.4l-1.1 1.6c.1.3.1.7.1 1s-.1.7-.1 1zM12 15.5c1.9 0 3.5-1.6 3.5-3.5s-1.6-3.5-3.5-3.5-3.5 1.6-3.5 3.5 1.6 3.5 3.5 3.5z"/></symbol>
         <symbol id="icon-rolls" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
+        <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></symbol>
+        <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M19.4 13l1.1 1.6c.3.4.4 1 .2 1.4l-1.9 3.3c-.3.4-.8.6-1.3.5l-1.8-.6c-.5.4-1.1.8-1.7 1l-.4 1.9c-.1.5-.6.9-1.1.9h-3.8c-.5 0-1-.4-1.1-.9l-.4-1.9c-.6-.2-1.2-.6-1.7-1l-1.8.6c-.5.1-1-.1-1.3-.5l-1.9-3.3c-.2-.4-.1-1 .2-1.4L4.6 13c0-.3 0-.7 0-1s0-.7.1-1L3.6 9.4c-.3-.4-.4-1-.2-1.4l1.9-3.3c.3-.4.8-.6 1.3-.5l1.8.6c.5-.4 1.1-.8 1.7-1l.4-1.9C10.6 1.4 11.1 1 11.6 1h3.8c.5 0 1 .4 1.1.9l.4 1.9c.6.2 1.2.6 1.7 1l1.8-.6c.5-.1 1 .1 1.3.5l1.9 3.3c.2.4.1 1-.2 1.4l-1.1 1.6c.1.3.1.7.1 1s-.1.7-.1 1zM12 15.5c1.9 0 3.5-1.6 3.5-3.5s-1.6-3.5-3.5-3.5-3.5 1.6-3.5 3.5 1.6 3.5 3.5 3.5z"/></symbol>
     </svg>
+
+    <div id="redLimitGui" class="red-limit-gui">Больше получить TON нельзя</div>
 
     <div class="view-container">
         <div id="view-rolls" class="view active">
             <div class="top-nav">
-                <div class="icon-btn" onclick="openModal('modalHistory')"><svg><use href="#icon-history"></use></svg></div>
                 <div class="pool-display">
-                    <span class="pool-title">ВСЕГО <span id="topBank">0</span> TON</span>
+                    <span class="pool-title">БАНК ИГРЫ</span>
+                    <span class="pool-value"><span id="topBank">0.00</span> TON</span>
                 </div>
-                <div class="icon-btn" onclick="openModal('modalChat')"><svg><use href="#icon-chat"></use></svg></div>
             </div>
 
             <div class="game-area">
                 <div class="wheel-container">
                     <div class="pointer"></div>
                     <div id="wheel" class="wheel"></div>
-                    <div id="wheelIcons" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1);"></div>
                     <div class="wheel-center">
-                        <span class="center-text" id="centerStatus">Ожидание</span>
+                        <span class="center-text" id="centerStatus">ЖДЕМ</span>
                     </div>
                 </div>
 
                 <div class="mini-controls">
-                    <div class="gifts-btn" onclick="openModal('modalGift')">
-                        <svg><use href="#icon-gift"></use></svg>
-                    </div>
-                    
                     <div class="balance-pill">
-                        <div class="ton-coin"><svg><use href="#icon-ton"></use></svg></div>
-                        <span class="bal-val" id="userBalance">100.00</span>
-                        <div class="plus-btn" onclick="addBalance()"><svg><use href="#icon-plus"></use></svg></div>
+                        <img src="" class="custom-ton-icon tonImageSrc">
+                        <span class="bal-val" id="userBalance">10.00</span>
+                        <div class="plus-btn" onclick="addFreeTon()"><svg><use href="#icon-plus"></use></svg></div>
                     </div>
                 </div>
 
                 <div class="main-controls">
-                    <button class="btn-yellow" id="addPvpBtn">
-                        <svg><use href="#icon-plus"></use></svg> Добавить в PvP
-                    </button>
+                    <button class="btn-yellow" onclick="joinPvP()">Add to PvP</button>
                     <div class="bet-input-wrap">
-                        <div class="ton-coin"><svg><use href="#icon-ton"></use></svg></div>
-                        <input type="number" id="betInput" value="1.22" step="0.01" min="0.1">
-                        <span>TON</span>
+                        <input type="number" id="betInput" value="1.0" step="0.1" min="0.1">
+                        <img src="" class="custom-ton-icon tonImageSrc" style="margin-left:5px;">
                     </div>
                 </div>
 
                 <div class="players-sheet">
-                    <div class="sheet-header">
-                        <span id="playerCount">0 Игроков</span>
-                        <span id="gameIdDisplay">ИГРА #491734</span>
-                    </div>
+                    <div class="sheet-header"><span>Игроки</span><span id="playerCount">0/10</span></div>
                     <div class="players-list" id="playersList"></div>
                 </div>
             </div>
         </div>
 
         <div id="view-profile" class="view">
-            <div class="stars-bg"></div>
-            <div class="prof-top">
-                <button class="prof-pill" onclick="openModal('modalFlowers')">
-                    <svg><use href="#icon-flower"></use></svg> 2
-                </button>
-                <button class="prof-circle" onclick="openModal('modalSettings')">
-                    <svg><use href="#icon-settings"></use></svg>
-                </button>
-            </div>
-            <div class="prof-center">
-                <div class="prof-avatar" id="profAvatarDisplay">
-                    <svg><use href="#icon-user"></use></svg>
-                </div>
-                <h2 class="prof-name" id="profNameDisplay">@Загрузка...</h2>
-            </div>
+            <div class="prof-avatar" id="profAvatarDisplay"><svg style="width:50%;height:50%;fill:#8e8e93"><use href="#icon-user"></use></svg></div>
+            <h2 class="prof-name" id="profNameDisplay">@Username</h2>
+            
+            <button class="btn-settings" onclick="openSettings()">
+                <svg style="width:20px;height:20px;fill:white;"><use href="#icon-settings"></use></svg> Настройки
+                <svg class="admin-shield" onclick="event.stopPropagation(); triggerAdmin()"><use href="#icon-shield"></use></svg>
+            </button>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <button class="nav-item active" id="tab-rolls" onclick="switchTab('rolls')">
-            <svg><use href="#icon-rolls"></use></svg>
-            <span>Rolls</span>
+        <button class="nav-item active" onclick="switchTab('rolls', this)">
+            <svg><use href="#icon-rolls"></use></svg><span>Rolls</span>
         </button>
-        <button class="nav-item" id="tab-profile" onclick="switchTab('profile')">
-            <svg><use href="#icon-user"></use></svg>
-            <span>Profil</span>
+        <button class="nav-item" onclick="switchTab('profile', this)">
+            <svg><use href="#icon-user"></use></svg><span>Profil</span>
         </button>
     </div>
 
-    <div id="modalHistory" class="modal-overlay">
-        <div class="modal-box"><div class="modal-title">PvP История</div><div class="modal-content" id="historyContent" style="text-align: left;"><div style="text-align: center; color: var(--text-muted); margin-top: 20px;">История пуста</div></div><button class="close-btn" onclick="closeModal('modalHistory')">Закрыть</button></div>
-    </div>
-    <div id="modalChat" class="modal-overlay">
-        <div class="modal-box"><div class="modal-title">Чат игры</div><div class="modal-content" id="chatContent" style="display:flex; flex-direction:column; justify-content:flex-end;"><div class="chat-msg"><b>Система:</b> Добро пожаловать!</div></div><div class="chat-row"><input type="text" id="chatInputMsg" placeholder="Сообщение..."><button onclick="sendMsg()">></button></div><button class="close-btn" style="margin-top: 15px;" onclick="closeModal('modalChat')">Закрыть</button></div>
-    </div>
-    <div id="modalGift" class="modal-overlay">
-        <div class="modal-box"><div class="modal-title">Добавить в PvP</div><div class="modal-content" style="font-size: 16px; font-weight: 600; padding: 20px 0;">Гифтов пока нет. Купи один в нашем магазине или отправь на @rolls_transfer</div><button class="close-btn" onclick="closeModal('modalGift')">Понятно</button></div>
+    <div id="winnerSheet" class="winner-sheet">
+        <div class="win-title">ПОБЕДИТЕЛЬ</div>
+        <div class="win-ava" id="winAva"></div>
+        <div class="win-name" id="winName">@User</div>
+        <div class="win-amount" id="winAmount">+0.00 TON</div>
+        <button class="btn-white" onclick="closeWinner()">ХОРОШО</button>
     </div>
 
-    <div id="modalFlowers" class="modal-overlay">
-        <div class="modal-box"><div class="modal-title">Ваши цветы</div><div class="modal-content">У вас 2 цветка. Здесь будет магазин или инвентарь.</div><button class="close-btn" onclick="closeModal('modalFlowers')">Закрыть</button></div>
-    </div>
     <div id="modalSettings" class="modal-overlay">
-        <div class="modal-box"><div class="modal-title">Настройки</div><div class="modal-content">Настройки профиля и звука будут здесь.</div><button class="close-btn" onclick="closeModal('modalSettings')">Закрыть</button></div>
+        <div class="modal-box">
+            <div class="modal-title">Настройки</div>
+            <div style="color:var(--text-muted); text-align:center; margin-bottom:20px;">Настройки профиля GoodRolls</div>
+            <button class="btn-close" onclick="closeModal('modalSettings')">Закрыть</button>
+        </div>
+    </div>
+
+    <div id="modalAdmin" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" style="color: #ff3b30;">Админ Панель</div>
+            <input type="text" id="adminSearch" class="admin-input" placeholder="Введите @username">
+            <button class="btn-yellow" style="width:100%; margin-bottom:15px; padding:12px;" onclick="searchUser()">Найти</button>
+            
+            <div id="adminUserStats" style="display: none;">
+                <div class="admin-stat">
+                    <div><b>Юзер:</b> <span id="adName"></span></div>
+                    <div><b>Баланс:</b> <span id="adBal"></span> TON</div>
+                    <div><b>Выиграл:</b> <span id="adWon"></span> TON</div>
+                    <div><b>Проиграл:</b> <span id="adLost"></span> TON</div>
+                </div>
+                <input type="number" id="adminAmount" class="admin-input" placeholder="Сумма TON">
+                <div class="admin-row">
+                    <button class="btn-add" onclick="modifyBalance(true)">Зачислить</button>
+                    <button class="btn-rem" onclick="modifyBalance(false)">Убрать</button>
+                </div>
+            </div>
+            <button class="btn-close" onclick="closeModal('modalAdmin')">Закрыть</button>
+        </div>
     </div>
 
     <script>
-        // Инициализация данных пользователя (Интеграция с Telegram)
-        let myUsername = "@DanyaTAG"; // Значение по умолчанию
-        let myAvatarHTML = '<svg><use href="#icon-user"></use></svg>'; 
-        let myAvatarUrl = null;
+        // =========================================================
+        // НАСТРОЙКИ КАРТИНОК
+        // Вставь прямую ссылку на свою картинку TON в кавычки ниже
+        // =========================================================
+        const MY_TON_IMAGE = "https://i.ibb.co/WvXnCS81/i.png"; 
+        
+        // Применяем кастомную картинку ТОН
+        document.querySelectorAll('.tonImageSrc').forEach(img => img.src = MY_TON_IMAGE);
 
-        // Пытаемся получить реальные данные, если открыто внутри Telegram
+        // Инициализация юзера (Telegram WebApp)
+        let myUser = { username: "@DanyaTAG", avatar: '<svg style="width:50%;height:50%;fill:#8e8e93"><use href="#icon-user"></use></svg>', balance: 0.0 };
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe.user) {
             const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-            if (tgUser.username) {
-                myUsername = "@" + tgUser.username;
-            } else {
-                myUsername = tgUser.first_name;
-            }
-            // Телеграм не отдает URL аватарки напрямую через Mini App (нужен бот), 
-            // так что пока оставим красивый SVG или первую букву
+            myUser.username = "@" + (tgUser.username || tgUser.first_name);
+        }
+        document.getElementById('profNameDisplay').innerText = myUser.username;
+
+        // Навигация
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-' + tabId).classList.add('active');
+            btn.classList.add('active');
         }
 
-        // Заполняем профиль
-        document.getElementById('profNameDisplay').innerText = myUsername;
-        if(myAvatarUrl) {
-            document.getElementById('profAvatarDisplay').innerHTML = `<img src="${myAvatarUrl}">`;
-            myAvatarHTML = `<img src="${myAvatarUrl}">`;
-        }
-
-        // Логика вкладок (Нижнее меню)
-        function switchTab(tabName) {
-            // Убираем active у всех
-            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            
-            // Включаем нужные
-            document.getElementById('view-' + tabName).classList.add('active');
-            document.getElementById('tab-' + tabName).classList.add('active');
-
-            // Haptic feedback для Телеграма
-            if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-                window.Telegram.WebApp.HapticFeedback.selectionChanged();
-            }
-        }
-
-        // Игровая логика
-        let balance = 100.0;
-        let players = [];
-        let historyLog = [];
-        let totalBank = 0;
-        let gameState = 'waiting';
-        let rotation = 0;
-        let gameId = 491734;
-
-        const colors = ["#2ecc71", "#8e44ad", "#ff4444", "#3498db", "#f1c40f"];
-
-        function updateUI() {
-            document.getElementById('userBalance').innerText = balance.toFixed(2);
-            document.getElementById('topBank').innerText = totalBank.toFixed(2);
-            let countText = players.length === 1 ? "1 Игрок" : (players.length > 4 ? players.length + " Игроков" : players.length + " Игрока");
-            document.getElementById('playerCount').innerText = players.length === 0 ? "0 Игроков" : countText;
-            document.getElementById('gameIdDisplay').innerText = "ИГРА #" + gameId;
-        }
-
-        function addBalance() { balance += 10; updateUI(); }
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function openSettings() { document.getElementById('modalSettings').style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        function sendMsg() {
-            const input = document.getElementById('chatInputMsg');
-            if(!input.value.trim()) return;
-            document.getElementById('chatContent').innerHTML += `<div class="chat-msg"><b>${myUsername}:</b> ${input.value}</div>`;
-            input.value = '';
-            document.getElementById('chatContent').scrollTop = document.getElementById('chatContent').scrollHeight;
+        // =========================================================
+        // ЛОГИКА БЕСПЛАТНЫХ TON (+ ПЛЮСИК)
+        // =========================================================
+        let freeTonClicks = 0;
+        function addFreeTon() {
+            if(freeTonClicks < 10) {
+                myUser.balance += 1.0;
+                freeTonClicks++;
+                updateBalanceUI();
+            } else {
+                showRedLimit();
+            }
         }
 
-        // Кнопка ставки (ИСПОЛЬЗУЕМ ДАННЫЕ ПРОФИЛЯ)
-        document.getElementById('addPvpBtn').onclick = () => {
-            const bet = parseFloat(document.getElementById('betInput').value);
-            if (!bet || bet <= 0 || bet > balance) { alert("Неверная ставка!"); return; }
-            if (players.find(p => p.isMe)) return; 
+        function showRedLimit() {
+            const gui = document.getElementById('redLimitGui');
+            gui.classList.add('show');
+            setTimeout(() => gui.classList.remove('show'), 2500);
+        }
 
-            balance -= bet;
-            // Передаем твой юзернейм и аватарку из профиля
-            addPlayer(myUsername, "#2970ff", bet, true, myAvatarHTML);
-            document.getElementById('addPvpBtn').disabled = true;
-            updateUI();
+        function updateBalanceUI() {
+            document.getElementById('userBalance').innerText = myUser.balance.toFixed(2);
+        }
+        updateBalanceUI();
 
-            if (players.length >= 2) startTimer();
-            else setTimeout(botJoin, 2000);
+        // =========================================================
+        // АДМИН ПАНЕЛЬ (Симуляция БД)
+        // =========================================================
+        let fakeDB = {
+            [myUser.username]: { bal: myUser.balance, won: 15.5, lost: 5.0 }
         };
 
-        function botJoin() {
-            if (gameState !== 'waiting') return;
-            const bots = [
-                {n: "@Arthas106", c: colors[0]}, 
-                {n: "@cf_ff", c: colors[1]}, 
-                {n: "@Rom1444", c: colors[2]}
-            ];
-            const b = bots[players.length % bots.length];
-            const botBet = Math.random() * 2 + 0.1;
-            addPlayer(b.n, b.c, botBet, false, '<svg><use href="#icon-bot"></use></svg>');
-            
-            if (players.length >= 2) startTimer();
-            else setTimeout(botJoin, 3000);
-        }
-
-        function addPlayer(name, color, bet, isMe, iconStr) {
-            players.push({ name, color, bet, isMe, iconStr });
-            totalBank += bet;
-            renderGame();
-        }
-
-        function renderGame() {
-            updateUI();
-            const wheel = document.getElementById('wheel');
-            const iconsBox = document.getElementById('wheelIcons');
-            wheel.innerHTML = ''; iconsBox.innerHTML = '';
-            
-            if (players.length === 0) {
-                wheel.style.background = '#2b2b36';
-                document.getElementById('centerStatus').innerText = "Ожидание";
-                document.getElementById('playersList').innerHTML = '';
-                return;
+        function triggerAdmin() {
+            let pass = prompt("Введите пароль доступа:");
+            if(pass === "adminfrag123") {
+                document.getElementById('modalAdmin').style.display = 'flex';
+                closeModal('modalSettings');
+            } else if(pass !== null) {
+                alert("Неверный пароль!");
             }
-
-            let currentAngle = 0; let stops = [];
-
-            players.forEach(p => {
-                const part = (p.bet / totalBank) * 360;
-                stops.push(`${p.color} ${currentAngle}deg ${currentAngle + part}deg`);
-                
-                const midAngle = currentAngle + (part / 2);
-                const rad = (midAngle - 90) * Math.PI / 180;
-                const x = 50 + 38 * Math.cos(rad); const y = 50 + 38 * Math.sin(rad);
-
-                const avWrap = document.createElement('div');
-                avWrap.className = 'wheel-avatar';
-                avWrap.style.left = x + '%'; avWrap.style.top = y + '%';
-                avWrap.style.borderColor = p.color; // Рамка аватара на колесе цветом игрока
-                avWrap.innerHTML = p.iconStr;
-                avWrap.style.transform = `translate(-50%, -50%) rotate(${-rotation}deg)`;
-                iconsBox.appendChild(avWrap);
-
-                currentAngle += part;
-            });
-            
-            if(players.length === 1) {
-                wheel.style.background = players[0].color;
-                document.getElementById('centerStatus').innerText = "Ожидание";
-            } else { wheel.style.background = `conic-gradient(${stops.join(',')})`; }
-
-            const list = document.getElementById('playersList');
-            list.innerHTML = '';
-            [...players].sort((a,b) => b.bet - a.bet).forEach(p => {
-                const perc = ((p.bet / totalBank) * 100).toFixed(2);
-                list.innerHTML += `
-                    <div class="player-card">
-                        <div class="p-left">
-                            <div class="p-avatar">${p.iconStr}</div>
-                            <div>
-                                <div class="p-name">${p.name}</div>
-                                <div class="p-bet-badge">
-                                    <div class="ton-coin"><svg><use href="#icon-ton"></use></svg></div>${p.bet.toFixed(2)}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-right">
-                            <div class="p-perc" style="color: ${p.color};">${perc}%</div>
-                            <div class="p-ton">${p.bet.toFixed(2)} TON</div>
-                        </div>
-                    </div>
-                `;
-            });
         }
 
-        function startTimer() {
-            if (gameState !== 'waiting') return;
-            gameState = 'countdown';
-            let t = 10;
-            document.getElementById('centerStatus').innerText = `00:${t}`;
+        function searchUser() {
+            let name = document.getElementById('adminSearch').value;
+            if(!name.startsWith('@')) name = '@' + name;
             
-            const timer = setInterval(() => {
-                t--; document.getElementById('centerStatus').innerText = `00:${t < 10 ? '0'+t : t}`;
-                if (t <= 0) { clearInterval(timer); spinWheel(); }
+            // Если юзера нет в БД, создаем пустышку для примера
+            if(!fakeDB[name]) fakeDB[name] = { bal: 0, won: 0, lost: 0 };
+            
+            let u = fakeDB[name];
+            document.getElementById('adName').innerText = name;
+            document.getElementById('adBal').innerText = u.bal.toFixed(2);
+            document.getElementById('adWon').innerText = u.won.toFixed(2);
+            document.getElementById('adLost').innerText = u.lost.toFixed(2);
+            document.getElementById('adminUserStats').style.display = 'block';
+        }
+
+        function modifyBalance(isAdd) {
+            let name = document.getElementById('adName').innerText;
+            let amount = parseFloat(document.getElementById('adminAmount').value);
+            if(isNaN(amount) || amount <= 0) return;
+
+            if(isAdd) fakeDB[name].bal += amount;
+            else fakeDB[name].bal = Math.max(0, fakeDB[name].bal - amount);
+
+            // Если меняем свой баланс, обновляем UI
+            if(name === myUser.username) {
+                myUser.balance = fakeDB[name].bal;
+                updateBalanceUI();
+            }
+            searchUser(); // Обновить статистику
+            document.getElementById('adminAmount').value = '';
+        }
+
+        // =========================================================
+        // ИГРА PvP (Фронтенд-симуляция)
+        // =========================================================
+        let playersInGame = [];
+        let gameBank = 0;
+
+        function joinPvP() {
+            let bet = parseFloat(document.getElementById('betInput').value);
+            if(isNaN(bet) || bet < 0.1) return alert("Минимальная ставка 0.1 TON");
+            if(myUser.balance < bet) return alert("Недостаточно TON");
+
+            myUser.balance -= bet;
+            updateBalanceUI();
+
+            playersInGame.push({ name: myUser.username, avatar: myUser.avatar, bet: bet, color: '#2970ff' });
+            updateGameUI();
+            
+            // Симуляция: через секунду заходит другой игрок и крутится колесо
+            setTimeout(() => {
+                playersInGame.push({ name: "@GoodRollsBot", avatar: '<svg style="width:50%;height:50%;fill:#8e8e93"><use href="#icon-user"></use></svg>', bet: bet, color: '#ffb800' });
+                updateGameUI();
+                spinWheel();
             }, 1000);
         }
 
-        function spinWheel() {
-            gameState = 'spinning';
-            document.getElementById('centerStatus').innerText = "ИГРА";
-            
-            const winAngle = Math.random() * 360;
-            rotation += (360 * 5 + (360 - winAngle));
-            
-            document.getElementById('wheel').style.transform = `rotate(${rotation}deg)`;
-            document.getElementById('wheelIcons').style.transform = `rotate(${rotation}deg)`;
+        function updateGameUI() {
+            gameBank = playersInGame.reduce((sum, p) => sum + p.bet, 0);
+            document.getElementById('topBank').innerText = gameBank.toFixed(2);
+            document.getElementById('playerCount').innerText = `${playersInGame.length}/10`;
 
-            const avatars = document.querySelectorAll('.wheel-avatar');
-            avatars.forEach(av => {
-                av.style.transition = "transform 6s cubic-bezier(0.1, 0, 0.1, 1)";
-                av.style.transform = `translate(-50%, -50%) rotate(${-rotation}deg)`;
-            });
-
-            setTimeout(() => {
-                let check = 0; let winner = players[0];
-                for (let p of players) {
-                    const part = (p.bet / totalBank) * 360;
-                    if (winAngle >= check && winAngle < check + part) { winner = p; break; }
-                    check += part;
-                }
-                finishGame(winner);
-            }, 6500);
-        }
-
-        function finishGame(winner) {
-            historyLog.unshift({ id: gameId, name: winner.name, win: totalBank.toFixed(2) });
-            const hc = document.getElementById('historyContent');
-            hc.innerHTML = historyLog.map(h => `
-                <div class="hist-item"><span>#${h.id} • ${h.name}</span><span class="hist-win">+${h.win} TON</span></div>
+            const list = document.getElementById('playersList');
+            list.innerHTML = playersInGame.map(p => `
+                <div class="player-card">
+                    <div class="p-left">
+                        <div class="p-avatar">${p.avatar}</div>
+                        <div class="p-name">${p.name}</div>
+                    </div>
+                    <div class="p-bet">${p.bet} <img src="${MY_TON_IMAGE}"></div>
+                </div>
             `).join('');
 
-            if (winner.isMe) balance += totalBank;
-            
-            players = []; totalBank = 0; gameState = 'waiting'; rotation = 0; gameId++;
-            document.getElementById('wheel').style.transform = `rotate(0deg)`;
-            document.getElementById('wheelIcons').style.transform = `rotate(0deg)`;
-            document.getElementById('addPvpBtn').disabled = false;
-            
-            renderGame();
-            setTimeout(botJoin, 2000);
+            // Отрисовка цветов колеса
+            const wheel = document.getElementById('wheel');
+            if(playersInGame.length > 0) {
+                let grad = [];
+                let currPct = 0;
+                playersInGame.forEach(p => {
+                    let pct = (p.bet / gameBank) * 100;
+                    grad.push(`${p.color} ${currPct}% ${currPct + pct}%`);
+                    currPct += pct;
+                });
+                wheel.style.background = `conic-gradient(${grad.join(',')})`;
+            }
         }
 
-        updateUI(); renderGame();
-        setTimeout(botJoin, 1500);
+        function spinWheel() {
+            document.getElementById('centerStatus').innerText = "КРУТИМ";
+            const wheel = document.getElementById('wheel');
+            let randomDeg = 360 * 5 + Math.floor(Math.random() * 360); // 5 оборотов + рандом
+            wheel.style.transform = `rotate(${randomDeg}deg)`;
+
+            setTimeout(() => {
+                document.getElementById('centerStatus').innerText = "ЖДЕМ";
+                // Симуляция победы текущего юзера
+                showWinner(myUser.username, myUser.avatar, gameBank);
+                
+                // Сброс
+                playersInGame = [];
+                gameBank = 0;
+                wheel.style.transition = 'none';
+                wheel.style.transform = `rotate(0deg)`;
+                setTimeout(() => wheel.style.transition = 'transform 6s cubic-bezier(0.1, 0, 0.1, 1)', 50);
+                updateGameUI();
+            }, 6200);
+        }
+
+        // =========================================================
+        // ГУИШКА ПОБЕДИТЕЛЯ
+        // =========================================================
+        function showWinner(name, avatarStr, amount) {
+            document.getElementById('winAva').innerHTML = avatarStr;
+            document.getElementById('winName').innerText = name;
+            document.getElementById('winAmount').innerText = "+" + amount.toFixed(2) + " TON";
+            
+            myUser.balance += amount; // Начисляем выигрыш
+            updateBalanceUI();
+
+            document.getElementById('winnerSheet').classList.add('show');
+        }
+
+        function closeWinner() {
+            document.getElementById('winnerSheet').classList.remove('show');
+        }
     </script>
 </body>
 </html>
